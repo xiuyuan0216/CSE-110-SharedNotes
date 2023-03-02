@@ -73,4 +73,27 @@ public class NoteAPI {
         // We can use future.get(1, SECONDS) to wait for the result.
         return future;
     }
+
+    @WorkerThread
+    public String getNote(String title){
+        String url = "https://sharednotes.goto.ucsd.edu/echo/";
+        var request = new Request.Builder().url("https://sharednotes.goto.ucsd.edu/echo/").build();
+        try (var response = client.newCall(request).execute()) {
+            assert response.body() != null;
+            var body = response.body().string();
+            Log.i("ECHO", body);
+            return body;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @AnyThread
+    public Future<String> getNoteAsync(){
+        var executor = Executors.newSingleThreadExecutor();
+        var future = executor.submit(() -> getNote());
+        // We can use future.get(1, SECONDS) to wait for the result.
+        return future;
+    }
 }

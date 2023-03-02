@@ -1,12 +1,18 @@
 package edu.ucsd.cse110.sharednotes.model;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class NoteRepository {
     private final NoteDao dao;
@@ -81,6 +87,18 @@ public class NoteRepository {
     // ==============
 
     public LiveData<Note> getRemote(String title) {
+        MutableLiveData<Note> data = new MutableLiveData<>();
+        NoteAPI noteapi = new NoteAPI();
+
+        var executor = Executors.newSingleThreadScheduledExecutor();
+        executor.scheduleAtFixedRate(() -> {
+            String content = noteapi.getNote(title);
+            Note note = Note.fromJSON(content);
+            Log.i("get", content);
+            data.postValue(note);
+        }, 0, 3000, TimeUnit.MILLISECONDS);
+
+        return data;
         // TODO: Implement getRemote!
         // TODO: Set up polling background thread (MutableLiveData?)
         // TODO: Refer to TimerService from https://github.com/DylanLukes/CSE-110-WI23-Demo5-V2.
@@ -92,11 +110,14 @@ public class NoteRepository {
         // you don't create a new polling thread every time you call getRemote with the same title.
         // You don't need to worry about killing background threads.
 
-        throw new UnsupportedOperationException("Not implemented yet");
+        //throw new UnsupportedOperationException("Not implemented yet");
     }
 
     public void upsertRemote(Note note) {
         // TODO: Implement upsertRemote!
-        throw new UnsupportedOperationException("Not implemented yet");
+        //throw new UnsupportedOperationException("Not implemented yet");
+        NoteAPI noteapi = new NoteAPI();
+        String content = note.toJSON();
+        noteapi.echoAsync(content);
     }
 }
